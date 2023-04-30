@@ -1,40 +1,52 @@
 <!-- Text in the grid tiles will be removed later, for now it is there for ease of scripting later. -->
 <div class="game-grid">
     <div class="grid-row">
-        <div class="grid-tile">1</div>
-        <div class="grid-tile">2</div>
-        <div class="grid-tile">3</div>
-        <div class="grid-tile">4</div>
+        <div class="grid-tile">0,0</div>
+        <div class="grid-tile">1,0</div>
+        <div class="grid-tile">2,0</div>
+        <div class="grid-tile">3,0</div>
     </div>
     <div class="grid-row">
-        <div class="grid-tile">5</div>
-        <div class="grid-tile">6</div>
-        <div class="grid-tile">7</div>
-        <div class="grid-tile">8</div>
+        <div class="grid-tile">0,1</div>
+        <div class="grid-tile">1,1</div>
+        <div class="grid-tile">2,1</div>
+        <div class="grid-tile">3,1</div>
     </div>
     <div class="grid-row">
-        <div class="grid-tile">9</div>
-        <div class="grid-tile">10</div>
-        <div class="grid-tile">11</div>
-        <div class="grid-tile">12</div>
+        <div class="grid-tile">0,2</div>
+        <div class="grid-tile">1,2</div>
+        <div class="grid-tile">2,2</div>
+        <div class="grid-tile">3,2</div>
     </div>
     <div class="grid-row">
-        <div class="grid-tile">13</div>
-        <div class="grid-tile">14</div>
-        <div class="grid-tile">15</div>
-        <div class="grid-tile">16</div>
+        <div class="grid-tile">0,3</div>
+        <div class="grid-tile">1,3</div>
+        <div class="grid-tile">2,3</div>
+        <div class="grid-tile">3,3</div>
     </div>
 </div>
 <div class="tile-grid">
-
+    <!-- position-X-Y -->
+    <div class="number-tile tile-2 position-0-0">2</div>
+    <div class="number-tile tile-4 position-0-1">4</div>
+    <div class="number-tile tile-8 position-0-2">8</div>
+    <div class="number-tile tile-16 position-0-3">16</div>
+    <div class="number-tile tile-32 position-1-0">32</div>
+    <div class="number-tile tile-64 position-1-1">64</div>
+    <div class="number-tile tile-128 position-1-2">128</div>
+    <div class="number-tile tile-256 position-1-3">256</div>
+    <div class="number-tile tile-512 position-2-0">512</div>
+    <div class="number-tile tile-1024 position-2-1">1024</div>
+    <div class="number-tile tile-2048 position-2-2">2048</div>
 </div>
 
 <style>
+    /* General styles */
     div.game-grid {
-        max-width: 97.5%;
-        box-sizing: border-box;
-        aspect-ratio: 1;
-        padding-left: 2.5%;
+        width: 480px;
+        height: 480px;
+        position: absolute;
+        z-index: 1;
     }
     div.grid-row {
         display: flex;
@@ -43,6 +55,11 @@
         height: 23.5%;
         margin-bottom: 2.5%;
     }
+    div.tile-grid {
+        position: absolute;
+        z-index: 2;
+    }
+
     div.grid-tile {
         margin-right: 2.5%;
         width: 25%;
@@ -51,5 +68,137 @@
     }
     div.grid-tile:last-child {
         margin-right: 0%;
+    }
+    div.number-tile {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 111px;
+        height: 115px;
+        border-radius: 2.5%;
+    }
+
+    /* Number tile styles */
+    .tile-2 {
+        background-color: hsl(30, 37%, 89%);
+        color: hsl(30, 8%, 43%);
+        font-size: 55px;
+    }
+    .tile-4 {
+        background-color: hsl(39, 51%, 86%);
+        color: hsl(30, 8%, 43%);
+        font-size: 55px;
+    }
+    .tile-8 {
+        background-color: hsl(28, 82%, 71%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-16 {
+        background-color: hsl(21, 88%, 67%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-32 {
+        background-color: hsl(12, 89%, 67%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-64 {
+        background-color: hsl(11, 91%, 60%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-128 {
+        background-color: hsl(45, 77%, 69%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-256 {
+        background-color: hsl(46, 80%, 65%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-512 {
+        background-color: hsl(46, 81%, 62%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-1024 {
+        background-color: hsl(46, 83%, 59%);
+        color: hsl(34, 37%, 96%);
+        font-size: 55px;
+    }
+    .tile-2048 {
+        background: linear-gradient(
+        30deg,
+            hsl(0, 100%, 50%) 0%,
+            hsl(36, 100%, 50%) 10%,
+            hsl(64, 74%, 50%) 20%,
+            hsl(118, 68%, 58%) 30%,
+            hsl(179, 68%, 55%) 40%,
+            hsl(188, 76%, 54%) 50%,
+            hsl(212, 86%, 52%) 60%,
+            hsl(260, 89%, 52%) 70%,
+            hsl(284, 94%, 51%) 80%,
+            hsl(308, 97%, 51%) 90%,
+            hsl(0, 100%, 50%) 100%
+        );
+        color: #f9f6f2;
+        font-size: 55px;
+    }
+
+    /* Position styles */
+    .position-0-0 {
+        transform: translate(0px, 0px);
+    }
+    .position-0-1 {
+        transform: translate(0px, 124.8px);
+    }
+    .position-0-2 {
+        transform: translate(0px, 249.6px);
+    }
+    .position-0-3 {
+        transform: translate(0px, 374.4px);
+    }
+
+    .position-1-0 {
+        transform: translate(123px, 0px);
+    }
+    .position-1-1 {
+        transform: translate(123px, 124.8px);
+    }
+    .position-1-2 {
+        transform: translate(123px, 249.6px);
+    }
+    .position-1-3 {
+        transform: translate(123px, 374.4px);
+    }
+
+    .position-2-0 {
+        transform: translate(246px, 0px);
+    }
+    .position-2-1 {
+        transform: translate(246px, 124.8px);
+    }
+    .position-2-2 {
+        transform: translate(246px, 249.6px);
+    }
+    .position-2-3 {
+        transform: translate(246px, 374.4px);
+    }
+
+    .position-3-0 {
+        transform: translate(369px, 0px);
+    }
+    .position-3-1 {
+        transform: translate(369px, 124.8px);
+    }
+    .position-3-2 {
+        transform: translate(369px, 249.6px);
+    }
+    .position-3-3 {
+        transform: translate(369px, 374.4px);
     }
 </style>
