@@ -71,66 +71,68 @@
     }
     div.number-tile {
         position: absolute;
+
         display: flex;
         align-items: center;
         justify-content: center;
+
         width: 111px;
         height: 115px;
         border-radius: 2.5%;
+
+        transition: all 100ms ease-in-out;
+
+        font-weight: bold;
+        font-size: 55px;
     }
 
     /* Number tile styles */
-    .tile-2 {
+    div.tile-2 {
         background-color: hsl(30, 37%, 89%);
         color: hsl(30, 8%, 43%);
-        font-size: 55px;
     }
-    .tile-4 {
+    div.tile-4 {
         background-color: hsl(39, 51%, 86%);
         color: hsl(30, 8%, 43%);
-        font-size: 55px;
     }
-    .tile-8 {
+    div.tile-8 {
         background-color: hsl(28, 82%, 71%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
     }
-    .tile-16 {
+    div.tile-16 {
         background-color: hsl(21, 88%, 67%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
     }
-    .tile-32 {
+    div.tile-32 {
         background-color: hsl(12, 89%, 67%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
     }
-    .tile-64 {
+    div.tile-64 {
         background-color: hsl(11, 91%, 60%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
     }
-    .tile-128 {
+    div.tile-128 {
         background-color: hsl(45, 77%, 69%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
+        font-size: 45px;
     }
-    .tile-256 {
+    div.tile-256 {
         background-color: hsl(46, 80%, 65%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
+        font-size: 45px;
     }
-    .tile-512 {
+    div.tile-512 {
         background-color: hsl(46, 81%, 62%);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
+        font-size: 45px;
     }
-    .tile-1024 {
+    div.tile-1024 {
         background-color: hsl(46, 83%, 59%);
+        box-shadow: 0 0 30px 10px hsla(47, 84%, 70%, 0.633), inset 0 0 0 1px hsla(0, 0%, 100%, 0.2);
         color: hsl(34, 37%, 96%);
-        font-size: 55px;
+        font-size: 35px;
     }
-    .tile-2048 {
+    div.tile-2048 {
         background: linear-gradient(
         30deg,
             hsl(0, 100%, 50%) 0%,
@@ -146,7 +148,7 @@
             hsl(0, 100%, 50%) 100%
         );
         color: #f9f6f2;
-        font-size: 55px;
+        font-size: 35px;
     }
 
     /* Position styles */
