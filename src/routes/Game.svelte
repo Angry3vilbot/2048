@@ -26,19 +26,49 @@
     </div>
 </div>
 <div class="tile-grid">
-    <!-- position-X-Y -->
-    <div class="number-tile tile-2 position-0-0">2</div>
-    <div class="number-tile tile-4 position-0-1">4</div>
-    <div class="number-tile tile-8 position-0-2">8</div>
-    <div class="number-tile tile-16 position-0-3">16</div>
-    <div class="number-tile tile-32 position-1-0">32</div>
-    <div class="number-tile tile-64 position-1-1">64</div>
-    <div class="number-tile tile-128 position-1-2">128</div>
-    <div class="number-tile tile-256 position-1-3">256</div>
-    <div class="number-tile tile-512 position-2-0">512</div>
-    <div class="number-tile tile-1024 position-2-1">1024</div>
-    <div class="number-tile tile-2048 position-2-2">2048</div>
+    <!-- number-tile tile-* position-X-Y -->
+    {#each tileArray as tile}
+        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY}`}>{tile.value}</div>
+    {:else}
+        <div class="bruh">bruh</div>
+    {/each}
 </div>
+<script lang="ts">
+    interface Tile {
+        value: number,
+        posX: number,
+        posY: number
+    }
+
+    let tileArray: Array<Tile>
+    $: tileArray = []
+
+    function generateTile() {
+        let tile: Tile = {
+            value: (Math.floor(Math.random() * 2) + 1) * 2,
+            posX: Math.floor(Math.random() * 4),
+            posY: Math.floor(Math.random() * 4)
+        }
+
+        for (let i in tileArray) {
+            // Check if the generated tile overlaps with an existing one
+            if(tileArray[i].posX === tile.posX && tileArray[i].posY === tile.posY) {
+                // Re-run the function
+                generateTile()
+            }
+        }
+
+        return tile
+    }
+
+    function gameStart() {
+        // Generate the starting two tiles
+        tileArray = [generateTile(), generateTile()]
+    }
+    
+    $: gameStart()
+
+</script>
 
 <style>
     /* General styles */
