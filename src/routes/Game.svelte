@@ -29,11 +29,11 @@
     <!-- number-tile tile-* position-X-Y -->
     {#each tileArray as tile}
         <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY}`}>{tile.value}</div>
-    {:else}
-        <div class="bruh">bruh</div>
     {/each}
 </div>
 <script lang="ts">
+  import { onMount } from "svelte";
+
     interface Tile {
         value: number,
         posX: number,
@@ -49,24 +49,103 @@
             posX: Math.floor(Math.random() * 4),
             posY: Math.floor(Math.random() * 4)
         }
-
-        for (let i in tileArray) {
+        
+        for (let i = 0; i < tileArray.length; i++) {
             // Check if the generated tile overlaps with an existing one
             if(tileArray[i].posX === tile.posX && tileArray[i].posY === tile.posY) {
-                // Re-run the function
-                generateTile()
+                // Return false to allow the code to re-run the function
+                return false
             }
         }
-
         return tile
     }
 
-    function gameStart() {
-        // Generate the starting two tiles
-        tileArray = [generateTile(), generateTile()]
+    function checkLoss() {
+        //TODO The check method is incomplete, implementation of a possible moves check (even during a filled board) is required
+        // Check if the board is full
+        if(tileArray.length === 16) {
+            return true
+        }
+        return false
     }
-    
-    $: gameStart()
+
+    function startGame() {
+        // Remove all tiles
+        tileArray = []
+        // Generate the starting two tiles
+        for (let i = 1; i <= 2; i++) {
+            let tile = generateTile()
+            // re-generate the tile if it overlaps with another
+            while (tile === false) {
+                tile = generateTile()
+            }
+            tileArray = [...tileArray, tile,]    
+        }
+    }
+
+    function moveTiles(ev: KeyboardEvent) {
+        let newTile: Tile|false
+        // Check for specific directional keys
+        switch(ev.key) {
+            case "ArrowUp":
+            case "w":
+                tileArray.forEach((tile) => {
+                    if(tile.posY !== 0) {
+                        let collision = false
+                        tileArray.forEach((otherTile) => {
+                            if(otherTile.posX === tile.posX && otherTile.posY === tile.posY - 1) {
+                                collision = true
+                                // TODO: Add a check for the value of tiles
+                            }
+                        })
+                        // TODO: Add a way of merging tiles
+                        collision ? null : tile.posY--
+                    }
+                })
+                newTile = generateTile()
+                while (newTile === false) {
+                    newTile = generateTile()
+                }
+                tileArray = [...tileArray, newTile]
+                break
+
+            case "ArrowDown":
+            case "s":
+
+                newTile = generateTile()
+                while (newTile === false) {
+                    newTile = generateTile()
+                }
+                tileArray = [...tileArray, newTile]
+                break
+            
+            case "ArrowLeft":
+            case "a":
+
+                newTile = generateTile()
+                while (newTile === false) {
+                    newTile = generateTile()
+                }
+                tileArray = [...tileArray, newTile]
+                break
+            
+            case "ArrowRight":
+            case "d":
+
+                newTile = generateTile()
+                while (newTile === false) {
+                    newTile = generateTile()
+                }
+                tileArray = [...tileArray, newTile]
+                break
+        }
+        // Check if the game is lost after the move
+        if (checkLoss()) {
+            startGame()
+        }
+    }
+    onMount(() => document.addEventListener("keydown", moveTiles))
+    $: startGame()
 
 </script>
 
