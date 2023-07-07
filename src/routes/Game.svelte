@@ -92,14 +92,19 @@
                 tileArray.forEach((tile) => {
                     if(tile.posY !== 0) {
                         let collision = false
-                        tileArray.forEach((otherTile) => {
+                        while (tile.posY !== 0 && collision === false) {
+                            tileArray.forEach((otherTile) => {
                             if(otherTile.posX === tile.posX && otherTile.posY === tile.posY - 1) {
                                 collision = true
-                                // TODO: Add a check for the value of tiles
+                                // Check if the tiles need to be merged
+                                if(tile.value === otherTile.value) {
+                                    tileArray = tileArray.filter((check) => check !== tile)
+                                    otherTile.value = otherTile.value * 2
+                                }
                             }
-                        })
-                        // TODO: Add a way of merging tiles
-                        collision ? null : tile.posY--
+                            })
+                            collision ? null : tile.posY--
+                        }
                     }
                 })
                 newTile = generateTile()
@@ -111,7 +116,24 @@
 
             case "ArrowDown":
             case "s":
-
+                tileArray.forEach((tile) => {
+                    if(tile.posY !== 3) {
+                        let collision = false
+                        while (tile.posY !== 3 && collision === false) {
+                            tileArray.forEach((otherTile) => {
+                            if(otherTile.posX === tile.posX && otherTile.posY === tile.posY + 1) {
+                                collision = true
+                                // Check if the tiles need to be merged
+                                if(tile.value === otherTile.value) {
+                                    tileArray = tileArray.filter((check) => check !== tile)
+                                    otherTile.value = otherTile.value * 2
+                                }
+                            }
+                            })
+                            collision ? null : tile.posY++
+                        }
+                    }
+                })
                 newTile = generateTile()
                 while (newTile === false) {
                     newTile = generateTile()
@@ -121,7 +143,24 @@
             
             case "ArrowLeft":
             case "a":
-
+                tileArray.forEach((tile) => {
+                    if(tile.posX !== 0) {
+                        let collision = false
+                        while (tile.posX !== 0 && collision === false) {
+                            tileArray.forEach((otherTile) => {
+                            if(otherTile.posY === tile.posY && otherTile.posX === tile.posX - 1) {
+                                collision = true
+                                // Check if the tiles need to be merged
+                                if(tile.value === otherTile.value) {
+                                    tileArray = tileArray.filter((check) => check !== tile)
+                                    otherTile.value = otherTile.value * 2
+                                }
+                            }
+                            })
+                            collision ? null : tile.posX--
+                        }
+                    }
+                })
                 newTile = generateTile()
                 while (newTile === false) {
                     newTile = generateTile()
@@ -131,7 +170,24 @@
             
             case "ArrowRight":
             case "d":
-
+                tileArray.forEach((tile) => {
+                    if(tile.posX !== 3) {
+                        let collision = false
+                        while (tile.posX !== 3 && collision === false) {
+                            tileArray.forEach((otherTile) => {
+                            if(otherTile.posY === tile.posY && otherTile.posX === tile.posX + 1) {
+                                collision = true
+                                // Check if the tiles need to be merged
+                                if(tile.value === otherTile.value) {
+                                    tileArray = tileArray.filter((check) => check !== tile)
+                                    otherTile.value = otherTile.value * 2
+                                }
+                            }
+                            })
+                            collision ? null : tile.posX++
+                        }
+                    }
+                })
                 newTile = generateTile()
                 while (newTile === false) {
                     newTile = generateTile()
