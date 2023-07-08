@@ -28,7 +28,9 @@
 <div class="tile-grid">
     <!-- number-tile tile-* position-X-Y -->
     {#each tileArray as tile}
-        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY}`}>{tile.value}</div>
+        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY} ${tile.new ? "new" : ""}`}>
+            <div class="inner-tile">{tile.value}</div>
+        </div>
     {/each}
 </div>
 <script lang="ts">
@@ -37,7 +39,9 @@
     interface Tile {
         value: number,
         posX: number,
-        posY: number
+        posY: number,
+        new: Boolean,
+        merged: Boolean
     }
 
     let tileArray: Array<Tile>
@@ -47,7 +51,9 @@
         let tile: Tile = {
             value: (Math.floor(Math.random() * 2) + 1) * 2,
             posX: Math.floor(Math.random() * 4),
-            posY: Math.floor(Math.random() * 4)
+            posY: Math.floor(Math.random() * 4),
+            new: true,
+            merged: false
         }
         
         for (let i = 0; i < tileArray.length; i++) {
@@ -84,12 +90,15 @@
     }
 
     function moveTiles(ev: KeyboardEvent) {
+        let movementCheck: Boolean = false
         let newTile: Tile|false
         // Check for specific directional keys
         switch(ev.key) {
             case "ArrowUp":
             case "w":
                 tileArray.forEach((tile) => {
+                    tile.new = false
+                    tile.merged = false
                     if(tile.posY !== 0) {
                         let collision = false
                         while (tile.posY !== 0 && collision === false) {
@@ -97,26 +106,35 @@
                             if(otherTile.posX === tile.posX && otherTile.posY === tile.posY - 1) {
                                 collision = true
                                 // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value) {
+                                if(tile.value === otherTile.value && !otherTile.merged) {
                                     tileArray = tileArray.filter((check) => check !== tile)
                                     otherTile.value = otherTile.value * 2
+                                    otherTile.merged = true
                                 }
                             }
                             })
-                            collision ? null : tile.posY--
+                            if(!collision) {
+                                tile.posY--
+                                movementCheck = true
+                            }
                         }
                     }
                 })
-                newTile = generateTile()
-                while (newTile === false) {
+                if(movementCheck === true) {
                     newTile = generateTile()
+                    while (newTile === false) {
+                        newTile = generateTile()
+                    }
+                    tileArray = [...tileArray, newTile]
                 }
-                tileArray = [...tileArray, newTile]
                 break
 
             case "ArrowDown":
             case "s":
+                
                 tileArray.forEach((tile) => {
+                    tile.new = false
+                    tile.merged = false
                     if(tile.posY !== 3) {
                         let collision = false
                         while (tile.posY !== 3 && collision === false) {
@@ -124,26 +142,35 @@
                             if(otherTile.posX === tile.posX && otherTile.posY === tile.posY + 1) {
                                 collision = true
                                 // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value) {
+                                if(tile.value === otherTile.value && !otherTile.merged) {
                                     tileArray = tileArray.filter((check) => check !== tile)
                                     otherTile.value = otherTile.value * 2
+                                    otherTile.merged = true
                                 }
                             }
                             })
-                            collision ? null : tile.posY++
+                            if(!collision) {
+                                tile.posY++
+                                movementCheck = true
+                            }
                         }
                     }
                 })
-                newTile = generateTile()
-                while (newTile === false) {
+                if(movementCheck === true) {
                     newTile = generateTile()
+                    while (newTile === false) {
+                        newTile = generateTile()
+                    }
+                    tileArray = [...tileArray, newTile]
                 }
-                tileArray = [...tileArray, newTile]
                 break
             
             case "ArrowLeft":
             case "a":
+                
                 tileArray.forEach((tile) => {
+                    tile.new = false
+                    tile.merged = false
                     if(tile.posX !== 0) {
                         let collision = false
                         while (tile.posX !== 0 && collision === false) {
@@ -151,26 +178,35 @@
                             if(otherTile.posY === tile.posY && otherTile.posX === tile.posX - 1) {
                                 collision = true
                                 // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value) {
+                                if(tile.value === otherTile.value && !otherTile.merged) {
                                     tileArray = tileArray.filter((check) => check !== tile)
                                     otherTile.value = otherTile.value * 2
+                                    otherTile.merged = true
                                 }
                             }
                             })
-                            collision ? null : tile.posX--
+                            if(!collision) {
+                                tile.posX--
+                                movementCheck = true
+                            }
                         }
                     }
                 })
-                newTile = generateTile()
-                while (newTile === false) {
+                if(movementCheck === true) {
                     newTile = generateTile()
+                    while (newTile === false) {
+                        newTile = generateTile()
+                    }
+                    tileArray = [...tileArray, newTile]
                 }
-                tileArray = [...tileArray, newTile]
                 break
             
             case "ArrowRight":
             case "d":
+                
                 tileArray.forEach((tile) => {
+                    tile.new = false
+                    tile.merged = false
                     if(tile.posX !== 3) {
                         let collision = false
                         while (tile.posX !== 3 && collision === false) {
@@ -178,23 +214,30 @@
                             if(otherTile.posY === tile.posY && otherTile.posX === tile.posX + 1) {
                                 collision = true
                                 // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value) {
+                                if(tile.value === otherTile.value && !otherTile.merged) {
                                     tileArray = tileArray.filter((check) => check !== tile)
                                     otherTile.value = otherTile.value * 2
+                                    otherTile.merged = true
                                 }
                             }
                             })
-                            collision ? null : tile.posX++
+                            if(!collision) {
+                                tile.posX++
+                                movementCheck = true
+                            }
                         }
                     }
                 })
-                newTile = generateTile()
-                while (newTile === false) {
+                if(movementCheck === true) {
                     newTile = generateTile()
+                    while (newTile === false) {
+                        newTile = generateTile()
+                    }
+                    tileArray = [...tileArray, newTile]
                 }
-                tileArray = [...tileArray, newTile]
                 break
         }
+        console.log(tileArray)
         // Check if the game is lost after the move
         if (checkLoss()) {
             startGame()
@@ -245,59 +288,72 @@
         height: 115px;
         border-radius: 2.5%;
 
-        transition: all 100ms ease-in-out;
+        transition: transform 100ms ease-in-out;
 
         font-weight: bold;
         font-size: 55px;
     }
+    div.inner-tile {
+        width: 111px;
+        height: 115px;
+        border-radius: 2.5%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    div.number-tile.new .inner-tile {
+        animation: 200ms ease-in-out 100ms newtile;
+        animation-fill-mode: backwards;
+    }
 
     /* Number tile styles */
-    div.tile-2 {
+    div.tile-2 .inner-tile {
         background-color: hsl(30, 37%, 89%);
         color: hsl(30, 8%, 43%);
     }
-    div.tile-4 {
+    div.tile-4 .inner-tile {
         background-color: hsl(39, 51%, 86%);
         color: hsl(30, 8%, 43%);
     }
-    div.tile-8 {
+    div.tile-8 .inner-tile {
         background-color: hsl(28, 82%, 71%);
         color: hsl(34, 37%, 96%);
     }
-    div.tile-16 {
+    div.tile-16 .inner-tile {
         background-color: hsl(21, 88%, 67%);
         color: hsl(34, 37%, 96%);
     }
-    div.tile-32 {
+    div.tile-32 .inner-tile {
         background-color: hsl(12, 89%, 67%);
         color: hsl(34, 37%, 96%);
     }
-    div.tile-64 {
+    div.tile-64 .inner-tile {
         background-color: hsl(11, 91%, 60%);
         color: hsl(34, 37%, 96%);
     }
-    div.tile-128 {
+    div.tile-128 .inner-tile {
         background-color: hsl(45, 77%, 69%);
         color: hsl(34, 37%, 96%);
         font-size: 45px;
     }
-    div.tile-256 {
+    div.tile-256 .inner-tile {
         background-color: hsl(46, 80%, 65%);
         color: hsl(34, 37%, 96%);
         font-size: 45px;
     }
-    div.tile-512 {
+    div.tile-512 .inner-tile {
         background-color: hsl(46, 81%, 62%);
         color: hsl(34, 37%, 96%);
         font-size: 45px;
     }
-    div.tile-1024 {
+    div.tile-1024 .inner-tile {
         background-color: hsl(46, 83%, 59%);
         box-shadow: 0 0 30px 10px hsla(47, 84%, 70%, 0.633), inset 0 0 0 1px hsla(0, 0%, 100%, 0.2);
         color: hsl(34, 37%, 96%);
         font-size: 35px;
     }
-    div.tile-2048 {
+    div.tile-2048 .inner-tile {
         background: linear-gradient(
         30deg,
             hsl(0, 100%, 50%) 0%,
@@ -367,5 +423,15 @@
     }
     .position-3-3 {
         transform: translate(369px, 374.4px);
+    }
+
+    @keyframes newtile {
+        0% {
+            scale: 0;
+        }
+
+        100% {
+            scale: 1;
+        }
     }
 </style>
