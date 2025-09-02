@@ -27,55 +27,57 @@
 </div>
 <div class="tile-grid">
     <!-- number-tile tile-* position-X-Y -->
-    {#each tileArray as tile}
-        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY} ${tile.new ? "new" : ""}`}>
+    {#each tileArray as tile (tile.id)}
+        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY} ${tile.isNew ? "new" : ""}`}>
             <div class="inner-tile">{tile.value}</div>
         </div>
     {/each}
 </div>
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
 
     interface Tile {
+        id: number,
         value: number,
         posX: number,
         posY: number,
-        new: Boolean,
-        merged: Boolean
+        isNew: boolean,
+        merged: boolean
     }
 
-    let tileArray: Array<Tile>
-    $: tileArray = []
+    let tileArray: Array<Tile> = []
 
-    function generateTile() {
-        let tile: Tile = {
-            value: (Math.floor(Math.random() * 2) + 1) * 2,
-            posX: Math.floor(Math.random() * 4),
-            posY: Math.floor(Math.random() * 4),
-            new: true,
-            merged: false
-        }
-        
-        for (let i = 0; i < tileArray.length; i++) {
-            // Check if the generated tile overlaps with an existing one
-            if(tileArray[i].posX === tile.posX && tileArray[i].posY === tile.posY) {
-                // Return false to allow the code to re-run the function
-                return false
+    function generateTile(): Tile | false {
+        // compute free cells from current tileArray
+        const occupied = new Set(tileArray.map(t => `${t.posX},${t.posY}`));
+        const free: { x: number; y: number }[] = [];
+        for (let x = 0; x < 4; x++) {
+            for (let y = 0; y < 4; y++) {
+                if (!occupied.has(`${x},${y}`)) free.push({ x, y });
             }
         }
-        return tile
+        if (free.length === 0) return false;
+        const pick = free[Math.floor(Math.random() * free.length)];
+        return {
+            id: Date.now() + Math.floor(Math.random() * 10000),
+            value: (Math.random() < 0.9 ? 2 : 4), // common 90% 2 / 10% 4
+            posX: pick.x,
+            posY: pick.y,
+            isNew: true,
+            merged: false
+        };
     }
 
-    function checkLoss() {
-        //TODO The check method is incomplete, implementation of a possible moves check (even during a filled board) is required
-        // Check if the board is full
-        if(tileArray.length === 16) {
-            return true
-        }
-        return false
-    }
+    // function checkLoss() {
+    //     //TODO The check method is incomplete, implementation of a possible moves check (even during a filled board) is required
+    //     // Check if the board is full
+    //     if(tileArray.length === 16) {
+    //         return true
+    //     }
+    //     return false
+    // }
 
-    function startGame() {
+    function startGame(): void {
         // Remove all tiles
         tileArray = []
         // Generate the starting two tiles
@@ -85,166 +87,180 @@
             while (tile === false) {
                 tile = generateTile()
             }
-            tileArray = [...tileArray, tile,]    
+            tileArray = [...tileArray, tile as Tile,]    
         }
     }
 
-    function moveTiles(ev: KeyboardEvent) {
-        let movementCheck: Boolean = false
-        let newTile: Tile|false
-        // Check for specific directional keys
-        switch(ev.key) {
-            case "ArrowUp":
-            case "w":
-                tileArray.forEach((tile) => {
-                    tile.new = false
-                    tile.merged = false
-                    if(tile.posY !== 0) {
-                        let collision = false
-                        while (tile.posY !== 0 && collision === false) {
-                            tileArray.forEach((otherTile) => {
-                            if(otherTile.posX === tile.posX && otherTile.posY === tile.posY - 1) {
-                                collision = true
-                                // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value && !otherTile.merged) {
-                                    tileArray = tileArray.filter((check) => check !== tile)
-                                    otherTile.value = otherTile.value * 2
-                                    otherTile.merged = true
-                                }
-                            }
-                            })
-                            if(!collision) {
-                                tile.posY--
-                                movementCheck = true
-                            }
-                        }
-                    }
-                })
-                if(movementCheck === true) {
-                    newTile = generateTile()
-                    while (newTile === false) {
-                        newTile = generateTile()
-                    }
-                    tileArray = [...tileArray, newTile]
-                }
-                break
+    function moveTiles(ev: KeyboardEvent): void {
+    let movementCheck: boolean = false
+    let newTiles: Tile[] = []
+    const removedIds = new Set<number>() // <- track tiles removed by merges
 
-            case "ArrowDown":
-            case "s":
-                
-                tileArray.forEach((tile) => {
-                    tile.new = false
-                    tile.merged = false
-                    if(tile.posY !== 3) {
-                        let collision = false
-                        while (tile.posY !== 3 && collision === false) {
-                            tileArray.forEach((otherTile) => {
-                            if(otherTile.posX === tile.posX && otherTile.posY === tile.posY + 1) {
-                                collision = true
-                                // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value && !otherTile.merged) {
-                                    tileArray = tileArray.filter((check) => check !== tile)
-                                    otherTile.value = otherTile.value * 2
-                                    otherTile.merged = true
-                                }
-                            }
-                            })
-                            if(!collision) {
-                                tile.posY++
-                                movementCheck = true
-                            }
+    // Check the movement direction
+    switch(ev.key) {
+        case "ArrowUp":
+        case "w":
+            // operate on a copy and reset flags, then sort by Y ascending
+            newTiles = [...tileArray].map(t => ({ ...t, merged: false, isNew: false })).sort((a, b) => a.posY - b.posY)
+            // Move every tile
+            for(let i = 0; i < newTiles.length; i++) {
+                let tile: Tile = newTiles[i]
+                let isMoved: boolean = false
+                tile.isNew = false
+                // Move the tile up
+                while(tile.posY > 0 && !isMoved) {
+                    // find a tile above that has NOT been removed
+                    const above = newTiles.find(t => t.posX === tile.posX && t.posY === tile.posY - 1 && !removedIds.has(t.id))
+                    if(!above) {
+                        tile.posY--
+                        movementCheck = true
+                    }
+                    else{
+                        // Check if the tiles can be merged
+                        if(!tile.merged && above.value === tile.value && !above.merged) {
+                            // mark the tile above as removed (don't mutate array now)
+                            removedIds.add(above.id)
+                            // Update the remaining tile's position, merge status and value
+                            tile.posY--
+                            tile.value *= 2
+                            tile.merged = true
+                            movementCheck = true
+                        }
+                        else{
+                            isMoved = true
                         }
                     }
-                })
-                if(movementCheck === true) {
-                    newTile = generateTile()
-                    while (newTile === false) {
-                        newTile = generateTile()
-                    }
-                    tileArray = [...tileArray, newTile]
                 }
-                break
-            
-            case "ArrowLeft":
-            case "a":
-                
-                tileArray.forEach((tile) => {
-                    tile.new = false
-                    tile.merged = false
-                    if(tile.posX !== 0) {
-                        let collision = false
-                        while (tile.posX !== 0 && collision === false) {
-                            tileArray.forEach((otherTile) => {
-                            if(otherTile.posY === tile.posY && otherTile.posX === tile.posX - 1) {
-                                collision = true
-                                // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value && !otherTile.merged) {
-                                    tileArray = tileArray.filter((check) => check !== tile)
-                                    otherTile.value = otherTile.value * 2
-                                    otherTile.merged = true
-                                }
-                            }
-                            })
-                            if(!collision) {
-                                tile.posX--
-                                movementCheck = true
-                            }
+            }
+            break
+        case "ArrowDown":
+        case "s":
+            // operate on a copy and reset flags, then sort by Y descending
+            newTiles = [...tileArray].map(t => ({ ...t, merged: false, isNew: false })).sort((a, b) => b.posY - a.posY)
+            // Move every tile
+            for(let i = 0; i < newTiles.length; i++) {
+                let tile: Tile = newTiles[i]
+                let isMoved: boolean = false
+                tile.isNew = false
+                // Move the tile down
+                while(tile.posY < 3 && !isMoved) {
+                    const below = newTiles.find(t => t.posX === tile.posX && t.posY === tile.posY + 1 && !removedIds.has(t.id))
+                    if(!below) {
+                        tile.posY++
+                        movementCheck = true
+                    }
+                    else{
+                        if(!tile.merged && below.value === tile.value && !below.merged) {
+                            removedIds.add(below.id)
+                            tile.posY++
+                            tile.value *= 2
+                            tile.merged = true
+                            movementCheck = true
+
+                        }
+                        else{
+                            isMoved = true
                         }
                     }
-                })
-                if(movementCheck === true) {
-                    newTile = generateTile()
-                    while (newTile === false) {
-                        newTile = generateTile()
-                    }
-                    tileArray = [...tileArray, newTile]
                 }
-                break
-            
-            case "ArrowRight":
-            case "d":
-                
-                tileArray.forEach((tile) => {
-                    tile.new = false
-                    tile.merged = false
-                    if(tile.posX !== 3) {
-                        let collision = false
-                        while (tile.posX !== 3 && collision === false) {
-                            tileArray.forEach((otherTile) => {
-                            if(otherTile.posY === tile.posY && otherTile.posX === tile.posX + 1) {
-                                collision = true
-                                // Check if the tiles need to be merged
-                                if(tile.value === otherTile.value && !otherTile.merged) {
-                                    tileArray = tileArray.filter((check) => check !== tile)
-                                    otherTile.value = otherTile.value * 2
-                                    otherTile.merged = true
-                                }
-                            }
-                            })
-                            if(!collision) {
-                                tile.posX++
-                                movementCheck = true
-                            }
+            }
+            break
+        case "ArrowLeft":
+        case "a":
+            // operate on a copy and reset flags, then sort by X ascending
+            newTiles = [...tileArray].map(t => ({ ...t, merged: false, isNew: false })).sort((a, b) => a.posX - b.posX)
+            // Move every tile
+            for(let i = 0; i < newTiles.length; i++) {
+                let tile: Tile = newTiles[i]
+                let isMoved: boolean = false
+                tile.isNew = false
+                // Move the tile left
+                while(tile.posX > 0 && !isMoved) {
+                    const left = newTiles.find(t => t.posX === tile.posX - 1 && t.posY === tile.posY && !removedIds.has(t.id))
+                    if(!left) {
+                        tile.posX--
+                        movementCheck = true
+                    }
+                    else{
+                        if(!tile.merged && left.value === tile.value && !left.merged) {
+                            removedIds.add(left.id)
+                            tile.posX--
+                            tile.value *= 2
+                            tile.merged = true
+                            movementCheck = true
+                        }
+                        else{
+                            isMoved = true
                         }
                     }
-                })
-                if(movementCheck === true) {
-                    newTile = generateTile()
-                    while (newTile === false) {
-                        newTile = generateTile()
-                    }
-                    tileArray = [...tileArray, newTile]
                 }
-                break
+            }
+            break
+        case "ArrowRight":
+        case "d":
+            // operate on a copy and reset flags, then sort by X descending
+            newTiles = [...tileArray].map(t => ({ ...t, merged: false, isNew: false })).sort((a, b) => b.posX - a.posX)
+            // Move every tile
+            for(let i = 0; i < newTiles.length; i++) {
+                let tile: Tile = newTiles[i]
+                let isMoved: boolean = false
+                tile.isNew = false
+                // Move the tile right
+                while(tile.posX < 3 && !isMoved) {
+                    const right = newTiles.find(t => t.posX === tile.posX + 1 && t.posY === tile.posY && !removedIds.has(t.id))
+                    if(!right) {
+                        tile.posX++
+                        movementCheck = true
+                    }
+                    else{
+                        if(!tile.merged && right.value === tile.value && !right.merged) {
+                            removedIds.add(right.id)
+                            tile.posX++
+                            tile.value *= 2
+                            tile.merged = true
+                            movementCheck = true
+                        }
+                        else{
+                            isMoved = true
+                        }
+                    }
+                }
+            }
+            break
+        default:
+            return
+    }
+
+    // filter out removed tiles now that all moves/merges are done
+    const resultTiles = newTiles.filter(t => !removedIds.has(t.id))
+    tileArray = resultTiles
+
+    if(movementCheck) {
+        if (tileArray.length < 16) {
+            let newtile: Tile | false = generateTile()
+            while (newtile === false) {
+                newtile = generateTile()
+            }
+            tileArray = [...tileArray, newtile as Tile]
         }
-        console.log(tileArray)
-        // Check if the game is lost after the move
-        if (checkLoss()) {
+    }
+
+    document.removeEventListener("keydown", moveTiles)
+    setTimeout(() => {
+        document.addEventListener("keydown", moveTiles)
+    }, 200)
+}
+    onMount(() => {
+        if (typeof document !== "undefined") {
             startGame()
+            document.addEventListener("keydown", moveTiles)
         }
-    }
-    onMount(() => document.addEventListener("keydown", moveTiles))
-    $: startGame()
+    })
+    onDestroy(() => {
+        if (typeof document !== "undefined") {
+            document.removeEventListener("keydown", moveTiles)
+        }
+    })
 
 </script>
 
@@ -427,11 +443,11 @@
 
     @keyframes newtile {
         0% {
-            scale: 0;
+            transform: scale(0);
         }
 
         100% {
-            scale: 1;
+            transform: scale(1);
         }
     }
 </style>
