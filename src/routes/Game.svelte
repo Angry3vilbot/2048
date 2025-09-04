@@ -1,28 +1,27 @@
-<!-- Text in the grid tiles will be removed later, for now it is there for ease of scripting later. -->
 <div class="game-grid">
     <div class="grid-row">
-        <div class="grid-tile">0,0</div>
-        <div class="grid-tile">1,0</div>
-        <div class="grid-tile">2,0</div>
-        <div class="grid-tile">3,0</div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
     </div>
     <div class="grid-row">
-        <div class="grid-tile">0,1</div>
-        <div class="grid-tile">1,1</div>
-        <div class="grid-tile">2,1</div>
-        <div class="grid-tile">3,1</div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
     </div>
     <div class="grid-row">
-        <div class="grid-tile">0,2</div>
-        <div class="grid-tile">1,2</div>
-        <div class="grid-tile">2,2</div>
-        <div class="grid-tile">3,2</div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
     </div>
     <div class="grid-row">
-        <div class="grid-tile">0,3</div>
-        <div class="grid-tile">1,3</div>
-        <div class="grid-tile">2,3</div>
-        <div class="grid-tile">3,3</div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
+        <div class="grid-tile"></div>
     </div>
 </div>
 <div class="tile-grid">
@@ -35,6 +34,7 @@
 </div>
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
+  import { incrementScore, UserState } from "../state.svelte";
 
     interface Tile {
         id: number,
@@ -49,15 +49,17 @@
 
     function generateTile(): Tile | false {
         // compute free cells from current tileArray
-        const occupied = new Set(tileArray.map(t => `${t.posX},${t.posY}`));
+        const occupied = new Set(tileArray.map(t => `${t.posX},${t.posY}`))
         const free: { x: number; y: number }[] = [];
         for (let x = 0; x < 4; x++) {
             for (let y = 0; y < 4; y++) {
-                if (!occupied.has(`${x},${y}`)) free.push({ x, y });
+                if (!occupied.has(`${x},${y}`)){
+                     free.push({ x, y })
+                }
             }
         }
         if (free.length === 0) return false;
-        const pick = free[Math.floor(Math.random() * free.length)];
+        const pick = free[Math.floor(Math.random() * free.length)]
         return {
             id: Date.now() + Math.floor(Math.random() * 10000),
             value: (Math.random() < 0.9 ? 2 : 4), // common 90% 2 / 10% 4
@@ -65,17 +67,31 @@
             posY: pick.y,
             isNew: true,
             merged: false
-        };
+        }
     }
 
-    // function checkLoss() {
-    //     //TODO The check method is incomplete, implementation of a possible moves check (even during a filled board) is required
-    //     // Check if the board is full
-    //     if(tileArray.length === 16) {
-    //         return true
-    //     }
-    //     return false
-    // }
+    function checkLoss() {
+        let canMove: boolean = false
+        // Check if the board is full
+        if(tileArray.length === 16) {
+            // Check for possible merges
+            tileArray.forEach(tile => {
+                // Look for tiles adjacent to the currently selected tile that have the same value
+                if(tileArray.find(t => (t.posX === tile.posX && t.posY === tile.posY - 1 && t.value === tile.value) || // above
+                                (t.posX === tile.posX && t.posY === tile.posY + 1 && t.value === tile.value) || // below
+                                (t.posX === tile.posX - 1 && t.posY === tile.posY && t.value === tile.value) || // left
+                                (t.posX === tile.posX + 1 && t.posY === tile.posY && t.value === tile.value)) // right
+                != undefined)
+                {
+                    canMove = true // There are available merges
+                }
+            })
+        }
+        else {
+            canMove = true
+        }
+        return canMove
+    }
 
     function startGame(): void {
         // Remove all tiles
@@ -93,6 +109,7 @@
 
     function moveTiles(ev: KeyboardEvent): void {
     let movementCheck: boolean = false
+    let hasWon: boolean = false
     let newTiles: Tile[] = []
     const removedIds = new Set<number>() // <- track tiles removed by merges
 
@@ -118,13 +135,20 @@
                     else{
                         // Check if the tiles can be merged
                         if(!tile.merged && above.value === tile.value && !above.merged) {
-                            // mark the tile above as removed (don't mutate array now)
+                            // mark the tile above as removed
                             removedIds.add(above.id)
                             // Update the remaining tile's position, merge status and value
                             tile.posY--
                             tile.value *= 2
                             tile.merged = true
                             movementCheck = true
+                            // Increment the score by the value of the merged tile
+                            incrementScore(tile.value)
+                            // Check for win condition
+                            if(tile.value === 2048) {
+                                alert("win")
+                                hasWon = true
+                            }
                         }
                         else{
                             isMoved = true
@@ -156,7 +180,11 @@
                             tile.value *= 2
                             tile.merged = true
                             movementCheck = true
-
+                            incrementScore(tile.value)
+                            if(tile.value === 2048) {
+                                alert("win")
+                                hasWon = true
+                            }
                         }
                         else{
                             isMoved = true
@@ -188,6 +216,11 @@
                             tile.value *= 2
                             tile.merged = true
                             movementCheck = true
+                            incrementScore(tile.value)
+                            if(tile.value === 2048) {
+                                alert("win")
+                                hasWon = true
+                            }
                         }
                         else{
                             isMoved = true
@@ -219,6 +252,11 @@
                             tile.value *= 2
                             tile.merged = true
                             movementCheck = true
+                            incrementScore(tile.value)
+                            if(tile.value === 2048) {
+                                alert("win")
+                                hasWon = true
+                            }
                         }
                         else{
                             isMoved = true
@@ -235,6 +273,7 @@
     const resultTiles = newTiles.filter(t => !removedIds.has(t.id))
     tileArray = resultTiles
 
+    // Generate a new tile if movement occurred
     if(movementCheck) {
         if (tileArray.length < 16) {
             let newtile: Tile | false = generateTile()
@@ -245,10 +284,24 @@
         }
     }
 
+    // Check for a loss
+    if(!checkLoss() && !hasWon) {
+        alert("loss")
+    }
+
+    // Check for a win
+    if(hasWon) {
+        // Remove the event listener to prevent further moves
+        document.removeEventListener("keydown", moveTiles)
+        // Update the high score if the current score is greater
+        UserState.highScore = Math.max(UserState.highScore, UserState.score)
+    }
+
+    // Temporarily remove the listener to prevent accidental multiple key presses
     document.removeEventListener("keydown", moveTiles)
     setTimeout(() => {
         document.addEventListener("keydown", moveTiles)
-    }, 200)
+    }, 100)
 }
     onMount(() => {
         if (typeof document !== "undefined") {

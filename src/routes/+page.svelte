@@ -1,8 +1,10 @@
 <script>
   import Game from "./Game.svelte";
+  import Score from "./Score.svelte";
 </script>
 <section class="main">
     <h1>2048</h1>
+    <Score></Score>
     <div class="game-container">
         <Game></Game>
     </div>
