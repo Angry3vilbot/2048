@@ -33,8 +33,10 @@
     {/each}
 </div>
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import { incrementScore, UserState } from "../state.svelte";
+  import { onMount, onDestroy } from "svelte"
+  import { incrementScore, updateHighScore } from "../state.svelte"
+  import pkg from "@squadette/hammerjs"
+  const Hammer = pkg
 
     interface Tile {
         id: number,
@@ -149,6 +151,8 @@
                                 alert("win")
                                 hasWon = true
                             }
+                            // Update high score if needed
+                            updateHighScore()
                         }
                         else{
                             isMoved = true
@@ -185,6 +189,8 @@
                                 alert("win")
                                 hasWon = true
                             }
+                            // Update high score if needed
+                            updateHighScore()
                         }
                         else{
                             isMoved = true
@@ -221,6 +227,8 @@
                                 alert("win")
                                 hasWon = true
                             }
+                            // Update high score if needed
+                            updateHighScore()
                         }
                         else{
                             isMoved = true
@@ -257,6 +265,8 @@
                                 alert("win")
                                 hasWon = true
                             }
+                            // Update high score if needed
+                            updateHighScore()
                         }
                         else{
                             isMoved = true
@@ -287,14 +297,16 @@
     // Check for a loss
     if(!checkLoss() && !hasWon) {
         alert("loss")
+        // Remove the event listener to prevent further moves
+        document.removeEventListener("keydown", moveTiles)
+        return
     }
 
     // Check for a win
     if(hasWon) {
         // Remove the event listener to prevent further moves
         document.removeEventListener("keydown", moveTiles)
-        // Update the high score if the current score is greater
-        UserState.highScore = Math.max(UserState.highScore, UserState.score)
+        return
     }
 
     // Temporarily remove the listener to prevent accidental multiple key presses
@@ -307,6 +319,13 @@
         if (typeof document !== "undefined") {
             startGame()
             document.addEventListener("keydown", moveTiles)
+            let hammer = new Hammer(document.body);
+
+            hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
+            hammer.on("swipeup", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowUp" })))
+            hammer.on("swipedown", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowDown" })))
+            hammer.on("swipeleft", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowLeft" })))
+            hammer.on("swiperight", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowRight" })))
         }
     })
     onDestroy(() => {
@@ -493,7 +512,8 @@
     .position-3-3 {
         transform: translate(369px, 374.4px);
     }
-
+    
+    /* Animations */
     @keyframes newtile {
         0% {
             transform: scale(0);
@@ -501,6 +521,81 @@
 
         100% {
             transform: scale(1);
+        }
+    }
+    /* Mobile */
+    @media screen and (max-width: 520px) {
+        div.game-grid {
+            width: 240px;
+            height: 240px;
+        }
+        div.grid-row {
+            height: 23.5%;
+            margin-bottom: 2.5%;
+        }
+        div.number-tile {
+            width: 55.5px;
+            height: 56.4px;
+            border-radius: 2.5%;
+        }
+        div.inner-tile {
+            width: 55.6px;
+            height: 56.5px;
+            border-radius: 2.5%;
+            font-size: 25px !important
+        }
+
+        /* Position styles */
+        .position-0-0 {
+            transform: translate(-0.2px, 0px);
+        }
+        .position-0-1 {
+            transform: translate(-0.3px, 62.1px);
+        }
+        .position-0-2 {
+            transform: translate(-0.2px, 124.71px);
+        }
+        .position-0-3 {
+            transform: translate(-0.1px, 186.9px);
+        }
+
+        .position-1-0 {
+            transform: translate(61.2px, 0px);
+        }
+        .position-1-1 {
+            transform: translate(61.2px, 62.1px);
+        }
+        .position-1-2 {
+            transform: translate(61.1px, 124.71px);
+        }
+        .position-1-3 {
+            transform: translate(61.2px, 186.9px);
+        }
+
+        .position-2-0 {
+            transform: translate(122.7px, 0px);
+        }
+        .position-2-1 {
+            transform: translate(122.7px, 62.1px);
+        }
+        .position-2-2 {
+            transform: translate(122.6px, 124.71px);
+        }
+        .position-2-3 {
+            transform: translate(122.7px, 186.9px);
+        }
+
+        .position-3-0 {
+            transform: translate(184.3px, 0px);
+        }
+        .position-3-1 {
+            transform: translate(184.3px, 62.1px);
+        }
+        .position-3-2 {
+            transform: translate(184.3px, 124.71px);
+        }
+        .position-3-3 {
+            transform: translate(184.3px, 186.9px);
         }
     }
 </style>

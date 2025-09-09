@@ -2,6 +2,13 @@
   import Game from "./Game.svelte";
   import Score from "./Score.svelte";
 </script>
+
+<svelte:head>
+    <title>2048</title>
+    <meta name="description" content="Play 2048 online!"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+</svelte:head>
+
 <section class="main">
     <h1>2048</h1>
     <Score></Score>
