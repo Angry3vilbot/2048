@@ -34,7 +34,7 @@
 </div>
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"
-  import { incrementScore, updateHighScore } from "../state.svelte"
+  import { incrementScore, loadHighScoreFromCookie, loadScoreFromCookie, updateHighScore, loadBoardFromCookie } from "../state.svelte"
   import pkg from "@squadette/hammerjs"
   const Hammer = pkg
 
@@ -48,6 +48,7 @@
     }
 
     let tileArray: Array<Tile> = []
+    let hammer: any;
 
     function generateTile(): Tile | false {
         // compute free cells from current tileArray
@@ -113,7 +114,7 @@
     let movementCheck: boolean = false
     let hasWon: boolean = false
     let newTiles: Tile[] = []
-    const removedIds = new Set<number>() // <- track tiles removed by merges
+    const removedIds = new Set<number>() // track tiles removed by merges
 
     // Check the movement direction
     switch(ev.key) {
@@ -283,7 +284,7 @@
     const resultTiles = newTiles.filter(t => !removedIds.has(t.id))
     tileArray = resultTiles
 
-    // Generate a new tile if movement occurred
+    // Generate a new tile and save the board to a cookie if movement occurred
     if(movementCheck) {
         if (tileArray.length < 16) {
             let newtile: Tile | false = generateTile()
@@ -291,6 +292,7 @@
                 newtile = generateTile()
             }
             tileArray = [...tileArray, newtile as Tile]
+            document.cookie = `board=${JSON.stringify(tileArray)}; path=/; max-age=1209600` // 2 weeks
         }
     }
 
@@ -299,6 +301,9 @@
         alert("loss")
         // Remove the event listener to prevent further moves
         document.removeEventListener("keydown", moveTiles)
+        hammer.destroy()
+        // Remove the board cookie
+        document.cookie = "board=; path=/; max-age=0"
         return
     }
 
@@ -306,6 +311,9 @@
     if(hasWon) {
         // Remove the event listener to prevent further moves
         document.removeEventListener("keydown", moveTiles)
+        hammer.destroy()
+        // Remove the board cookie
+        document.cookie = "board=; path=/; max-age=0"
         return
     }
 
@@ -316,16 +324,30 @@
     }, 100)
 }
     onMount(() => {
-        if (typeof document !== "undefined") {
-            startGame()
+        if(typeof document !== "undefined") {
+            loadHighScoreFromCookie()
+            let savedBoard: Array<Tile> | null = loadBoardFromCookie()
+            if(savedBoard !== null) {
+                // Load the saved board
+                tileArray = savedBoard
+                // Load the score
+                loadScoreFromCookie()
+            }
+            else {
+                // Start a new game
+                startGame()
+            }
+
             document.addEventListener("keydown", moveTiles)
-            let hammer = new Hammer(document.body);
+            hammer = new Hammer(document.body)
 
             hammer.get('swipe').set({ direction: Hammer.DIRECTION_ALL });
             hammer.on("swipeup", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowUp" })))
             hammer.on("swipedown", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowDown" })))
             hammer.on("swipeleft", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowLeft" })))
             hammer.on("swiperight", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowRight" })))
+
+
         }
     })
     onDestroy(() => {
