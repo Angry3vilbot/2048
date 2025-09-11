@@ -302,8 +302,9 @@
         // Remove the event listener to prevent further moves
         document.removeEventListener("keydown", moveTiles)
         hammer.destroy()
-        // Remove the board cookie
+        // Remove the board and score cookies
         document.cookie = "board=; path=/; max-age=0"
+        document.cookie = "score=; path=/; max-age=0"
         return
     }
 
@@ -312,8 +313,9 @@
         // Remove the event listener to prevent further moves
         document.removeEventListener("keydown", moveTiles)
         hammer.destroy()
-        // Remove the board cookie
+        // Remove the board and score cookies
         document.cookie = "board=; path=/; max-age=0"
+        document.cookie = "score=; path=/; max-age=0"
         return
     }
 
