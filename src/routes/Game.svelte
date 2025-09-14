@@ -1,3 +1,13 @@
+<div class="victory-overlay hidden">
+    <p>You Win!</p>
+    <p>You scored {UserState.score} points in {UserState.moves} moves.</p>
+    <button on:click={() => startGame()}>New Game</button>
+</div>
+<div class="loss-overlay hidden">
+    <p>Game Over!</p>
+    <p>You scored {UserState.score} points in {UserState.moves} moves.</p>
+    <button on:click={() => startGame()}>New Game</button>
+</div>
 <div class="game-grid">
     <div class="grid-row">
         <div class="grid-tile"></div>
@@ -34,7 +44,7 @@
 </div>
 <script lang="ts">
   import { onMount, onDestroy } from "svelte"
-  import { incrementScore, loadHighScoreFromCookie, loadScoreFromCookie, updateHighScore, loadBoardFromCookie } from "../state.svelte"
+  import { incrementScore, loadHighScoreFromCookie, loadScoreFromCookie, updateHighScore, loadBoardFromCookie, UserState, incrementMoves, resetScore, resetMoves } from "../state.svelte"
   import pkg from "@squadette/hammerjs"
   const Hammer = pkg
 
@@ -97,6 +107,12 @@
     }
 
     function startGame(): void {
+        // Reset the score and moves
+        resetScore()
+        resetMoves()
+        // Hide any overlays
+        document.querySelector(".victory-overlay")?.classList.add("hidden")
+        document.querySelector(".loss-overlay")?.classList.add("hidden")
         // Remove all tiles
         tileArray = []
         // Generate the starting two tiles
@@ -284,8 +300,9 @@
     const resultTiles = newTiles.filter(t => !removedIds.has(t.id))
     tileArray = resultTiles
 
-    // Generate a new tile and save the board to a cookie if movement occurred
+    // Generate a new tile, increment move counter and save the board to a cookie if movement occurred
     if(movementCheck) {
+        incrementMoves();
         if (tileArray.length < 16) {
             let newtile: Tile | false = generateTile()
             while (newtile === false) {
@@ -298,13 +315,14 @@
 
     // Check for a loss
     if(!checkLoss() && !hasWon) {
-        alert("loss")
         // Remove the event listener to prevent further moves
         document.removeEventListener("keydown", moveTiles)
         hammer.destroy()
         // Remove the board and score cookies
         document.cookie = "board=; path=/; max-age=0"
         document.cookie = "score=; path=/; max-age=0"
+        // Reveal the loss overlay
+        document.querySelector(".loss-overlay")?.classList.remove("hidden")
         return
     }
 
@@ -316,6 +334,8 @@
         // Remove the board and score cookies
         document.cookie = "board=; path=/; max-age=0"
         document.cookie = "score=; path=/; max-age=0"
+        // Reveal the victory overlay
+        document.querySelector(".victory-overlay")?.classList.remove("hidden")
         return
     }
 
@@ -484,6 +504,53 @@
         font-size: 35px;
     }
 
+    /* Overlay Styles */
+    .hidden {
+        display: none !important;
+    }
+    .victory-overlay, .loss-overlay {
+        position: absolute;
+        top:0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: hsla(30, 37%, 89%, 0.7);
+        z-index: 10;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 24px;
+        font-weight: bold;
+        color: hsl(30, 8%, 43%);
+    }
+    .victory-overlay p, .loss-overlay p {
+        margin: 2%;
+    }
+    .victory-overlay p:first-child, .loss-overlay p:first-child {
+        font-size: 2em;
+    }
+    .victory-overlay button, .loss-overlay button {
+        margin-top: 5%;
+        padding: 1% 3%;
+        background-color: hsl(10, 15%, 90%);
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        outline: 2px solid hsl(30, 8%, 43%);
+        color: hsl(30, 8%, 43%);
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+    }
+    .victory-overlay button:hover, .loss-overlay button:hover {
+        background-color: hsl(10, 15%, 80%);
+    }
+
+
     /* Position styles */
     .position-0-0 {
         transform: translate(0px, 0px);
@@ -567,6 +634,18 @@
             height: 56.5px;
             border-radius: 2.5%;
             font-size: 25px !important
+        }
+
+        /* Overlay Styles */
+        .victory-overlay, .loss-overlay {
+            font-size: 18px;
+            text-align: center;
+        }
+        .victory-overlay p:first-child, .loss-overlay p:first-child {
+            font-size: 1.5em;
+        }
+        .victory-overlay button, .loss-overlay button {
+            font-size: 0.9em;
         }
 
         /* Position styles */
