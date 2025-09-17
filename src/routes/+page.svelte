@@ -10,7 +10,10 @@
 </svelte:head>
 
 <section class="main">
-    <h1>2048</h1>
+    <header>
+        <h1 title="Click to restart the game">2048</h1>
+        <a href="https://github.com/Angry3vilbot/2048" aria-label="GitHub Repository"><i class="github-icon"></i></a>
+    </header>
     <Score></Score>
     <div class="game-container">
         <Game></Game>
@@ -20,6 +23,29 @@
 <style>
     * {
         font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    header h1 {
+        font-weight: bold;
+        font-size: 2.5em;
+        margin: 0;
+        color: hsl(10, 15%, 30%);
+        cursor: pointer;
+    }
+    header i {
+        background-image: url(
+            "../../static/github.svg"
+        );
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        background-size: contain;
     }
 
     section.main {

@@ -37,7 +37,7 @@
 <div class="tile-grid">
     <!-- number-tile tile-* position-X-Y -->
     {#each tileArray as tile (tile.id)}
-        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY} ${tile.isNew ? "new" : ""}`}>
+        <div class={`number-tile tile-${tile.value} position-${tile.posX}-${tile.posY} ${tile.isNew ? "new" : ""} ${tile.merged ? "merged" : ""}`}>
             <div class="inner-tile">{tile.value}</div>
         </div>
     {/each}
@@ -369,7 +369,7 @@
             hammer.on("swipeleft", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowLeft" })))
             hammer.on("swiperight", () => moveTiles(new KeyboardEvent("keydown", { key: "ArrowRight" })))
 
-
+            document.querySelector(".main>header>h1")?.addEventListener("click", () => startGame())
         }
     })
     onDestroy(() => {
@@ -437,6 +437,10 @@
     div.number-tile.new .inner-tile {
         animation: 200ms ease-in-out 100ms newtile;
         animation-fill-mode: backwards;
+    }
+    div.number-tile.merged .inner-tile {
+        animation: 200ms ease-in-out merge;
+        animation-fill-mode: forwards;
     }
 
     /* Number tile styles */
@@ -610,6 +614,18 @@
             transform: scale(0);
         }
 
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @keyframes merge {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2);
+        }
         100% {
             transform: scale(1);
         }
